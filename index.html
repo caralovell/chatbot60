@@ -11,7 +11,8 @@
   --red:#e10600;
   --dark:#0f0f0f;
   --light:#ffffff;
-  --border:rgba(255,255,255,.08);
+  --muted:#8a8a8a;
+  --border:rgba(255,255,255,.10);
 }
 
 *{box-sizing:border-box}
@@ -24,35 +25,41 @@ body{
   display:flex;
   justify-content:center;
   align-items:center;
-  height:100vh;
+  min-height:100vh;
+  padding:16px;
 }
 
+/* Desktop layout */
 .app{
   width:100%;
   max-width:1000px;
   display:grid;
   grid-template-columns:300px 1fr;
-  gap:20px;
+  gap:16px;
 }
 
 .side{
   background:var(--dark);
   border-radius:16px;
-  padding:20px;
+  padding:18px;
   border:1px solid var(--border);
+  display:flex;
+  flex-direction:column;
+  gap:14px;
 }
 
 .logo{
-  width:120px;
-  margin-bottom:30px;
+  width:140px;
+  height:auto;
+  display:block;
 }
 
 .section-title{
   font-size:12px;
   text-transform:uppercase;
   letter-spacing:2px;
-  color:#777;
-  margin-bottom:10px;
+  color:var(--muted);
+  margin:0 0 8px;
 }
 
 .chips{
@@ -68,6 +75,8 @@ body{
   font-size:12px;
   cursor:pointer;
   transition:0.2s;
+  user-select:none;
+  line-height:1.1;
 }
 
 .chip:hover{
@@ -82,10 +91,11 @@ body{
   display:flex;
   flex-direction:column;
   overflow:hidden;
+  min-height:620px;
 }
 
 .chat-header{
-  padding:18px;
+  padding:16px 18px;
   border-bottom:1px solid var(--border);
   font-weight:bold;
   letter-spacing:1px;
@@ -93,27 +103,22 @@ body{
 
 .messages{
   flex:1;
-  padding:20px;
+  padding:18px;
   overflow:auto;
   display:flex;
   flex-direction:column;
   gap:12px;
 }
 
-.msg{
-  max-width:75%;
-}
-
-.msg.user{
-  align-self:flex-end;
-  text-align:right;
-}
+.msg{ max-width:78%; }
+.msg.user{ align-self:flex-end; text-align:right; }
 
 .bubble{
-  padding:12px 16px;
+  padding:12px 14px;
   border-radius:14px;
   font-size:14px;
   line-height:1.4;
+  white-space:pre-wrap;
 }
 
 .user .bubble{
@@ -122,44 +127,89 @@ body{
 }
 
 .bot .bubble{
-  background:#1a1a1a;
+  background:#171717;
   border:1px solid var(--border);
 }
 
 .composer{
   display:flex;
   border-top:1px solid var(--border);
+  background:#0b0b0b;
 }
 
 input{
   flex:1;
-  padding:16px;
-  background:#111;
+  padding:14px 14px;
+  background:#0b0b0b;
   border:none;
   color:#fff;
   font-size:14px;
 }
 
-input:focus{
-  outline:none;
-}
+input:focus{ outline:none; }
 
 button{
   background:var(--red);
   border:none;
   color:#fff;
-  padding:0 24px;
+  padding:0 20px;
   cursor:pointer;
   font-weight:bold;
 }
 
-button:hover{
-  opacity:0.9;
-}
+button:hover{ opacity:0.92; }
 
-@media(max-width:900px){
+/* ---------- MOBILE LAYOUT ---------- */
+/* Requirement:
+   "Image on the left and 4 suggestions on the right, and below the chat"
+*/
+@media (max-width: 900px){
+  body{
+    align-items:flex-start;
+  }
+
   .app{
     grid-template-columns:1fr;
+    gap:14px;
+    max-width:720px;
+  }
+
+  /* Turn the side panel into a top bar:
+     left = logo, right = 4 chips (2x2) */
+  .side{
+    flex-direction:row;
+    align-items:center;
+    justify-content:space-between;
+    padding:14px;
+  }
+
+  .logo{
+    width:110px;
+  }
+
+  .section-title{
+    display:none; /* no title in mobile top bar */
+  }
+
+  .chips{
+    display:grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap:8px;
+    width: 58%;
+  }
+
+  .chip{
+    padding:10px 10px;
+    border-radius:12px;
+    font-size:12px;
+    text-align:center;
+    white-space:nowrap;
+    overflow:hidden;
+    text-overflow:ellipsis;
+  }
+
+  .chat{
+    min-height: calc(100vh - 190px);
   }
 }
 </style>
@@ -170,35 +220,39 @@ button:hover{
 <div class="app">
 
   <aside class="side">
-    <img src="ete.jpg" class="logo">
+    <!-- Replace logo.png with your actual file name/path -->
+    <img src="ete.jpg" class="logo" alt="Sixty Degrees logo">
 
-    <div class="section-title">Suggested Questions</div>
-    <div class="chips" id="chips"></div>
+    <div>
+      <div class="section-title">Suggested Questions</div>
+      <div class="chips" id="chips"></div>
+    </div>
   </aside>
 
   <main class="chat">
-    <div class="chat-header">
-      Sixty Degrees
-    </div>
+    <div class="chat-header">Sixty Degrees</div>
 
     <div class="messages" id="messages"></div>
 
     <div class="composer">
       <input id="input" placeholder="What is Sixty Degrees?" />
-      <button onclick="send()">Send</button>
+      <button id="sendBtn">Send</button>
     </div>
   </main>
 
 </div>
 
 <script>
-
-const SUGGESTED = [
+/** 10 suggested prompts total.
+ *  On MOBILE we only show the first 4 (as requested).
+ *  On DESKTOP we show all 10.
+ */
+const SUGGESTED_ALL = [
   "What is Sixty Degrees?",
   "What features do you offer?",
   "How does pricing work?",
-  "Can I book a demo?",
   "Do you integrate with HubSpot?",
+  "Can I book a demo?",
   "What about security?",
   "How long does onboarding take?",
   "What support options do you have?",
@@ -222,8 +276,11 @@ const RESPONSES = {
   "integrate":
     "We support integrations via API and can connect with platforms like HubSpot, Salesforce, and collaboration tools.",
 
+  "hubspot":
+    "Yes — we can integrate with HubSpot via API/webhooks depending on your data flows (contacts, deals, activities). Tell me what you want to sync and I’ll outline the approach.",
+
   "security":
-    "Security is a priority. We support secure authentication, data protection standards, and GDPR compliance.",
+    "Security is a priority. We support secure authentication, role-based access, and data protection practices aligned with GDPR requirements.",
 
   "onboarding":
     "Onboarding typically includes discovery, configuration, integration, pilot phase, and full rollout.",
@@ -235,7 +292,7 @@ const RESPONSES = {
     "Our solutions adapt to retail, hospitality, healthcare, corporate environments, and more.",
 
   "contact":
-    "Please share your contact details and our team will get back to you shortly."
+    "Please share your name, company, and email, and our team will get back to you shortly."
 };
 
 const FALLBACK =
@@ -243,6 +300,8 @@ const FALLBACK =
 
 const messages = document.getElementById("messages");
 const input = document.getElementById("input");
+const chipsContainer = document.getElementById("chips");
+const sendBtn = document.getElementById("sendBtn");
 
 function addMessage(role, text){
   const msg = document.createElement("div");
@@ -259,13 +318,13 @@ function addMessage(role, text){
 
 function getResponse(text){
   const lower = text.toLowerCase();
-
-  for (let key in RESPONSES){
-    if(lower.includes(key)){
-      return RESPONSES[key];
-    }
+  for (const key in RESPONSES){
+    if(lower.includes(key)) return RESPONSES[key];
   }
-
+  // extra routing
+  if (/\b(price|pricing|cost|plan)\b/.test(lower)) return RESPONSES["pricing"];
+  if (/\b(integrat|api|webhook)\b/.test(lower)) return RESPONSES["integrate"];
+  if (/\b(security|gdpr|privacy|sso|encrypt)\b/.test(lower)) return RESPONSES["security"];
   return FALLBACK;
 }
 
@@ -276,27 +335,34 @@ function send(){
   addMessage("user", text);
   input.value = "";
 
-  setTimeout(()=>{
-    addMessage("bot", getResponse(text));
-  },400);
+  setTimeout(()=> addMessage("bot", getResponse(text)), 350);
 }
 
-input.addEventListener("keydown", e=>{
+sendBtn.addEventListener("click", send);
+input.addEventListener("keydown", e => {
   if(e.key === "Enter") send();
 });
 
-const chipsContainer = document.getElementById("chips");
+// Render chips: 4 on mobile, 10 on desktop
+function renderChips(){
+  chipsContainer.innerHTML = "";
+  const isMobile = window.matchMedia("(max-width: 900px)").matches;
+  const list = isMobile ? SUGGESTED_ALL.slice(0,4) : SUGGESTED_ALL;
 
-SUGGESTED.forEach(q=>{
-  const chip = document.createElement("div");
-  chip.className="chip";
-  chip.textContent=q;
-  chip.onclick=()=>{ input.value=q; input.focus(); };
-  chipsContainer.appendChild(chip);
-});
+  list.forEach(q=>{
+    const chip = document.createElement("div");
+    chip.className="chip";
+    chip.textContent=q;
+    chip.onclick=()=>{ input.value=q; input.focus(); };
+    chipsContainer.appendChild(chip);
+  });
+}
 
+window.addEventListener("resize", renderChips);
+renderChips();
+
+// Seed
 addMessage("bot","Hello. Ask me about Sixty Degrees.");
-
 </script>
 
 </body>
