@@ -1,0 +1,303 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Sixty Degrees</title>
+
+<style>
+:root{
+  --black:#000000;
+  --red:#e10600;
+  --dark:#0f0f0f;
+  --light:#ffffff;
+  --border:rgba(255,255,255,.08);
+}
+
+*{box-sizing:border-box}
+
+body{
+  margin:0;
+  font-family: Arial, Helvetica, sans-serif;
+  background: var(--black);
+  color: var(--light);
+  display:flex;
+  justify-content:center;
+  align-items:center;
+  height:100vh;
+}
+
+.app{
+  width:100%;
+  max-width:1000px;
+  display:grid;
+  grid-template-columns:300px 1fr;
+  gap:20px;
+}
+
+.side{
+  background:var(--dark);
+  border-radius:16px;
+  padding:20px;
+  border:1px solid var(--border);
+}
+
+.logo{
+  width:120px;
+  margin-bottom:30px;
+}
+
+.section-title{
+  font-size:12px;
+  text-transform:uppercase;
+  letter-spacing:2px;
+  color:#777;
+  margin-bottom:10px;
+}
+
+.chips{
+  display:flex;
+  flex-wrap:wrap;
+  gap:10px;
+}
+
+.chip{
+  border:1px solid var(--border);
+  padding:8px 12px;
+  border-radius:50px;
+  font-size:12px;
+  cursor:pointer;
+  transition:0.2s;
+}
+
+.chip:hover{
+  border-color:var(--red);
+  color:var(--red);
+}
+
+.chat{
+  background:var(--dark);
+  border-radius:16px;
+  border:1px solid var(--border);
+  display:flex;
+  flex-direction:column;
+  overflow:hidden;
+}
+
+.chat-header{
+  padding:18px;
+  border-bottom:1px solid var(--border);
+  font-weight:bold;
+  letter-spacing:1px;
+}
+
+.messages{
+  flex:1;
+  padding:20px;
+  overflow:auto;
+  display:flex;
+  flex-direction:column;
+  gap:12px;
+}
+
+.msg{
+  max-width:75%;
+}
+
+.msg.user{
+  align-self:flex-end;
+  text-align:right;
+}
+
+.bubble{
+  padding:12px 16px;
+  border-radius:14px;
+  font-size:14px;
+  line-height:1.4;
+}
+
+.user .bubble{
+  background:var(--red);
+  color:#fff;
+}
+
+.bot .bubble{
+  background:#1a1a1a;
+  border:1px solid var(--border);
+}
+
+.composer{
+  display:flex;
+  border-top:1px solid var(--border);
+}
+
+input{
+  flex:1;
+  padding:16px;
+  background:#111;
+  border:none;
+  color:#fff;
+  font-size:14px;
+}
+
+input:focus{
+  outline:none;
+}
+
+button{
+  background:var(--red);
+  border:none;
+  color:#fff;
+  padding:0 24px;
+  cursor:pointer;
+  font-weight:bold;
+}
+
+button:hover{
+  opacity:0.9;
+}
+
+@media(max-width:900px){
+  .app{
+    grid-template-columns:1fr;
+  }
+}
+</style>
+</head>
+
+<body>
+
+<div class="app">
+
+  <aside class="side">
+    <img src="logo.png" class="logo">
+
+    <div class="section-title">Suggested Questions</div>
+    <div class="chips" id="chips"></div>
+  </aside>
+
+  <main class="chat">
+    <div class="chat-header">
+      Sixty Degrees
+    </div>
+
+    <div class="messages" id="messages"></div>
+
+    <div class="composer">
+      <input id="input" placeholder="What is Sixty Degrees?" />
+      <button onclick="send()">Send</button>
+    </div>
+  </main>
+
+</div>
+
+<script>
+
+const SUGGESTED = [
+  "What is Sixty Degrees?",
+  "What features do you offer?",
+  "How does pricing work?",
+  "Can I book a demo?",
+  "Do you integrate with HubSpot?",
+  "What about security?",
+  "How long does onboarding take?",
+  "What support options do you have?",
+  "Which industries do you work with?",
+  "How can I contact sales?"
+];
+
+const RESPONSES = {
+  "what is sixty degrees":
+    "Sixty Degrees is a technology-driven company focused on delivering smart digital experiences. We help businesses enhance engagement, optimize operations, and connect systems seamlessly.",
+
+  "features":
+    "Our platform offers customizable workflows, analytics dashboards, integrations, role-based permissions, and scalable architecture.",
+
+  "pricing":
+    "Pricing depends on the number of users and modules required. Contact our team for a tailored proposal.",
+
+  "demo":
+    "You can request a personalized demo by sharing your company details and preferred date.",
+
+  "integrate":
+    "We support integrations via API and can connect with platforms like HubSpot, Salesforce, and collaboration tools.",
+
+  "security":
+    "Security is a priority. We support secure authentication, data protection standards, and GDPR compliance.",
+
+  "onboarding":
+    "Onboarding typically includes discovery, configuration, integration, pilot phase, and full rollout.",
+
+  "support":
+    "We offer different support tiers including standard, priority, and dedicated success management.",
+
+  "industries":
+    "Our solutions adapt to retail, hospitality, healthcare, corporate environments, and more.",
+
+  "contact":
+    "Please share your contact details and our team will get back to you shortly."
+};
+
+const FALLBACK =
+  "At the moment we are unable to answer that question. Please try asking about features, pricing, integrations, onboarding, security or contact.";
+
+const messages = document.getElementById("messages");
+const input = document.getElementById("input");
+
+function addMessage(role, text){
+  const msg = document.createElement("div");
+  msg.className = "msg " + role;
+
+  const bubble = document.createElement("div");
+  bubble.className = "bubble";
+  bubble.textContent = text;
+
+  msg.appendChild(bubble);
+  messages.appendChild(msg);
+  messages.scrollTop = messages.scrollHeight;
+}
+
+function getResponse(text){
+  const lower = text.toLowerCase();
+
+  for (let key in RESPONSES){
+    if(lower.includes(key)){
+      return RESPONSES[key];
+    }
+  }
+
+  return FALLBACK;
+}
+
+function send(){
+  const text = input.value.trim();
+  if(!text) return;
+
+  addMessage("user", text);
+  input.value = "";
+
+  setTimeout(()=>{
+    addMessage("bot", getResponse(text));
+  },400);
+}
+
+input.addEventListener("keydown", e=>{
+  if(e.key === "Enter") send();
+});
+
+const chipsContainer = document.getElementById("chips");
+
+SUGGESTED.forEach(q=>{
+  const chip = document.createElement("div");
+  chip.className="chip";
+  chip.textContent=q;
+  chip.onclick=()=>{ input.value=q; input.focus(); };
+  chipsContainer.appendChild(chip);
+});
+
+addMessage("bot","Hello. Ask me about Sixty Degrees.");
+
+</script>
+
+</body>
+</html>
