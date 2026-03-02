@@ -7,26 +7,29 @@
 
 <style>
 :root{
-  --black:#000000;
+  --bg:#f6f6f6;
+  --ink:#0a0a0a;
+  --card:rgba(255,255,255,.86);
+  --cardSolid:#ffffff;
+  --muted:#6b6b6b;
   --red:#e10600;
-  --dark:#0f0f0f;
-  --light:#ffffff;
-  --border:rgba(255,255,255,.10);
+  --border:rgba(0,0,0,.08);
+  --shadow: 0 10px 30px rgba(0,0,0,.10);
 }
 
 *{box-sizing:border-box}
-
 html,body{height:100%}
 
 body{
   margin:0;
   font-family: Arial, Helvetica, sans-serif;
-  background:
-    radial-gradient(circle at top left, rgba(225,6,0,0.18), transparent 35%),
-    radial-gradient(circle at bottom right, rgba(225,6,0,0.12), transparent 40%),
-    #000000;
-  color:var(--light);
+  color:var(--ink);
   overflow:hidden;
+
+  background:
+    radial-gradient(circle at 18% 18%, rgba(225,6,0,.22), transparent 38%),
+    radial-gradient(circle at 82% 78%, rgba(225,6,0,.14), transparent 42%),
+    linear-gradient(180deg, #ffffff 0%, var(--bg) 100%);
 }
 
 .app{
@@ -44,10 +47,13 @@ body{
   display:flex;
   align-items:center;
   justify-content:space-between;
-  background:var(--dark);
-  border:1px solid var(--border);
-  border-radius:16px;
   padding:12px;
+
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  box-shadow: var(--shadow);
+  backdrop-filter: blur(10px);
 }
 
 .logo{width:90px}
@@ -60,7 +66,7 @@ body{
 }
 
 .chip{
-  background:#111;
+  background: var(--cardSolid);
   border:1px solid var(--border);
   border-radius:12px;
   padding:10px;
@@ -68,17 +74,24 @@ body{
   cursor:pointer;
   transition:.2s;
   text-align:center;
+  color: var(--ink);
 }
-.chip:hover{border-color:var(--red);color:var(--red)}
+.chip:hover{
+  border-color: var(--red);
+  color: var(--red);
+}
 
 /* CHAT */
 .chat{
   display:flex;
   flex-direction:column;
-  background:var(--dark);
   border-radius:16px;
-  border:1px solid var(--border);
   overflow:hidden;
+
+  background: var(--card);
+  border: 1px solid var(--border);
+  box-shadow: var(--shadow);
+  backdrop-filter: blur(10px);
 }
 
 .chat-header{
@@ -103,12 +116,23 @@ body{
   padding:12px 14px;
   border-radius:14px;
   font-size:14px;
-  line-height:1.35;
+  line-height:1.4;
 }
 
-.user .bubble{background:var(--red)}
-.bot .bubble{background:#171717;border:1px solid var(--border)}
+/* USER MESSAGE */
+.user .bubble{
+  background:var(--red);
+  color:white;
+}
 
+/* BOT MESSAGE */
+.bot .bubble{
+  background:var(--cardSolid);
+  border:1px solid var(--border);
+  color:var(--ink);
+}
+
+/* COMPOSER */
 .composer{
   display:flex;
   border-top:1px solid var(--border);
@@ -117,10 +141,13 @@ body{
 input{
   flex:1;
   padding:16px;
-  background:#0b0b0b;
+  background:transparent;
   border:none;
-  color:white;
-  font-size:16px; /* important for mobile no-zoom */
+  color:var(--ink);
+  font-size:16px;
+}
+input::placeholder{
+  color:rgba(0,0,0,.45);
 }
 input:focus{outline:none}
 
@@ -154,134 +181,73 @@ button{
 </div>
 
 <script>
-/**
- * Keep only the 4 suggestions you already have
- */
 const SUGGESTED = [
   "What is Sixty Degrees?",
-  "Pricing information",
+  "Pricing",
   "Integrations",
   "Book a demo"
 ];
 
-/**
- * "Knowledge base" style responses.
- * Note: For CEO/owner/headcount, it's safer to answer in a non-specific way
- * unless you hardcode the real info (so we avoid wrong facts).
- */
 const ANSWERS = [
   {
-    keys: ["what is sixty degrees", "what is sixty", "about sixty degrees", "company", "who are you"],
-    reply:
-      "Sixty Degrees is a technology-driven company focused on building smart digital experiences and seamless digital engagement solutions—helping organizations improve the way they connect with customers and teams."
+    keys: ["what is sixty degrees","about","company"],
+    reply:"Sixty Degrees is a technology-driven company focused on building smart digital experiences and seamless digital engagement solutions."
   },
   {
-    keys: ["pricing", "price", "cost", "how much"],
-    reply:
-      "Pricing depends on the scope (features, integrations, rollout size, and support). If you share your use case and number of users, we can propose the best-fit package."
+    keys:["pricing","price","cost"],
+    reply:"Pricing depends on scope, integrations, and rollout size. Share your use case and we’ll tailor a proposal."
   },
   {
-    keys: ["integrations", "integrate", "api", "hubspot", "salesforce", "crm"],
-    reply:
-      "We integrate via API and can connect with platforms like HubSpot, Salesforce, and other enterprise systems. We typically map data flows, set permissions, and then deploy in phases."
+    keys:["integrations","api","hubspot","salesforce","crm"],
+    reply:"We integrate via API and connect with platforms like HubSpot, Salesforce, and other enterprise systems."
   },
   {
-    keys: ["demo", "book a demo", "book demo", "schedule", "meeting"],
-    reply:
-      "Happy to set up a demo. Tell us your company, what you want to achieve, and your preferred dates—and we’ll propose a slot."
-  },
-
-  // NEW: Location
-  {
-    keys: ["where are you located", "location", "where are you based", "based", "office", "headquarters", "hq"],
-    reply:
-      "We work internationally. If you’re looking for our main office location, share your region and we’ll point you to the most relevant local contact or hub."
-  },
-
-  // NEW: Headcount / team size
-  {
-    keys: ["how many people", "headcount", "team size", "employees", "how big is the team", "staff"],
-    reply:
-      "Team size varies by market and partners. If you tell us what you’re evaluating (pilot vs. full deployment), we can share the typical team composition involved (product, engineering, delivery, support)."
-  },
-
-  // NEW: Success cases / case studies
-  {
-    keys: ["success", "success stories", "case studies", "examples", "use cases", "results", "clients", "references"],
-    reply:
-      "We typically see the strongest impact in projects like: (1) customer experience and digital engagement, (2) operational efficiency through automation and integrations, and (3) analytics/visibility across teams. If you tell me your industry (airport, retail, hospitality, etc.), I can list the most relevant success-case examples we usually showcase."
-  },
-
-  // NEW: CEO / owner
-  {
-    keys: ["ceo", "owner", "founder", "who owns", "who is the ceo", "leadership", "management team"],
-    reply:
-      "For the most accurate leadership information (CEO/founders/ownership), please check the official company website or LinkedIn page—or share the link here and I’ll help you summarize it."
-  },
-
-  // More “sensible” info to have
-  {
-    keys: ["what do you do", "services", "solutions", "offer", "product"],
-    reply:
-      "We help companies design and deliver digital experiences: discovery & strategy, UX/UI, platform development, integrations (CRM/ERP), analytics, and ongoing optimization—always tailored to the customer journey and operational reality."
+    keys:["demo","book","meeting"],
+    reply:"Happy to schedule a demo. Share your company and preferred dates and we’ll coordinate."
   },
   {
-    keys: ["industries", "sectors", "verticals"],
-    reply:
-      "We’re a fit for organizations that need strong digital engagement and integration—common sectors include retail, mobility/transport, hospitality, and enterprise services. Tell me your sector and goal and I’ll suggest the best starting point."
+    keys:["location","where","based","office","hq"],
+    reply:"We operate internationally. Let us know your region and we’ll connect you with the most relevant office."
   },
   {
-    keys: ["implementation", "rollout", "deployment", "how long", "timeline"],
-    reply:
-      "A typical rollout starts with discovery, then a pilot, then phased expansion. Timelines depend on integrations and scope, but we usually recommend moving fast with a small pilot and scaling based on results."
+    keys:["how many","team","employees","staff"],
+    reply:"Our team scales depending on project scope. We combine product, engineering, and delivery experts per engagement."
   },
   {
-    keys: ["security", "privacy", "gdpr", "compliance"],
-    reply:
-      "Security and privacy are built in: role-based access, auditability, and GDPR-aligned practices. For formal requirements, we can provide documentation and align with your IT/security team."
+    keys:["success","case","examples","clients","results"],
+    reply:"We focus on digital engagement, automation, integrations and analytics. Tell us your industry and we’ll share relevant success examples."
   },
   {
-    keys: ["support", "maintenance", "sla"],
-    reply:
-      "We can provide ongoing support and maintenance, including SLAs depending on your needs. If you tell us your required coverage (business hours vs. 24/7), we’ll propose the right support model."
+    keys:["ceo","owner","founder","leadership"],
+    reply:"For the latest leadership information, please refer to the official company website or LinkedIn page."
   }
 ];
 
 const FALLBACK =
-  "At the moment we are unable to answer that question. Please try asking about pricing, integrations, booking a demo, location, team size, or success cases.";
+  "At the moment we are unable to answer that question. Please ask about pricing, integrations, demo, location or success cases.";
 
-const messages = document.getElementById("messages");
-const input = document.getElementById("input");
-const chipsContainer = document.getElementById("chips");
+const messages=document.getElementById("messages");
+const input=document.getElementById("input");
+const chipsContainer=document.getElementById("chips");
 
 function addMessage(role,text){
   const msg=document.createElement("div");
   msg.className="msg "+role;
-
   const bubble=document.createElement("div");
   bubble.className="bubble";
   bubble.textContent=text;
-
   msg.appendChild(bubble);
   messages.appendChild(msg);
   messages.scrollTop=messages.scrollHeight;
 }
 
 function getResponse(text){
-  const lower = text.toLowerCase().trim();
-
+  const lower=text.toLowerCase();
   for(const item of ANSWERS){
-    for(const k of item.keys){
-      // includes match for flexible phrasing
-      if(lower.includes(k)) return item.reply;
+    for(const key of item.keys){
+      if(lower.includes(key)) return item.reply;
     }
   }
-
-  // quick heuristics (handles "book demo" vs "demo", etc.)
-  if(lower.includes("book") && lower.includes("demo")) {
-    return ANSWERS.find(a => a.keys.includes("demo")).reply;
-  }
-
   return FALLBACK;
 }
 
