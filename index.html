@@ -21,7 +21,10 @@ html,body{height:100%}
 body{
   margin:0;
   font-family: Arial, Helvetica, sans-serif;
-  background: linear-gradient(135deg, #000000 0%, #1a0000 40%, #000000 100%);
+  background:
+    radial-gradient(circle at top left, rgba(225,6,0,0.18), transparent 35%),
+    radial-gradient(circle at bottom right, rgba(225,6,0,0.12), transparent 40%),
+    #000000;
   color:var(--light);
   overflow:hidden;
 }
@@ -156,7 +159,7 @@ button{
  */
 const SUGGESTED = [
   "What is Sixty Degrees?",
-  "Pricing",
+  "Pricing information",
   "Integrations",
   "Book a demo"
 ];
