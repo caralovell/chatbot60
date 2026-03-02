@@ -16,9 +16,7 @@
 
 *{box-sizing:border-box}
 
-html,body{
-  height:100%;
-}
+html,body{height:100%}
 
 body{
   margin:0;
@@ -49,9 +47,7 @@ body{
   padding:12px;
 }
 
-.logo{
-  width:90px;
-}
+.logo{width:90px}
 
 .chips{
   display:grid;
@@ -70,11 +66,7 @@ body{
   transition:.2s;
   text-align:center;
 }
-
-.chip:hover{
-  border-color:var(--red);
-  color:var(--red);
-}
+.chip:hover{border-color:var(--red);color:var(--red)}
 
 /* CHAT */
 .chat{
@@ -111,14 +103,8 @@ body{
   line-height:1.35;
 }
 
-.user .bubble{
-  background:var(--red);
-}
-
-.bot .bubble{
-  background:#171717;
-  border:1px solid var(--border);
-}
+.user .bubble{background:var(--red)}
+.bot .bubble{background:#171717;border:1px solid var(--border)}
 
 .composer{
   display:flex;
@@ -131,9 +117,8 @@ input{
   background:#0b0b0b;
   border:none;
   color:white;
-  font-size:14px;
+  font-size:16px; /* important for mobile no-zoom */
 }
-
 input:focus{outline:none}
 
 button{
@@ -150,7 +135,6 @@ button{
 <body>
 
 <div class="app">
-
   <aside class="side">
     <img src="ete.jpg" class="logo" alt="Sixty Degrees">
     <div class="chips" id="chips"></div>
@@ -164,10 +148,12 @@ button{
       <button onclick="send()">Send</button>
     </div>
   </main>
-
 </div>
 
 <script>
+/**
+ * Keep only the 4 suggestions you already have
+ */
 const SUGGESTED = [
   "What is Sixty Degrees?",
   "Pricing",
@@ -175,19 +161,91 @@ const SUGGESTED = [
   "Book a demo"
 ];
 
-const RESPONSES = {
-  "what is sixty degrees":
-    "Sixty Degrees is a technology-driven company focused on delivering smart digital experiences and seamless digital engagement solutions.",
-  "pricing":
-    "Pricing depends on your project scope and number of users. Contact us for a tailored proposal.",
-  "integrations":
-    "We integrate via API and can connect with platforms like HubSpot, Salesforce, and other enterprise systems.",
-  "demo":
-    "You can book a personalized demo by sharing your company details and preferred date."
-};
+/**
+ * "Knowledge base" style responses.
+ * Note: For CEO/owner/headcount, it's safer to answer in a non-specific way
+ * unless you hardcode the real info (so we avoid wrong facts).
+ */
+const ANSWERS = [
+  {
+    keys: ["what is sixty degrees", "what is sixty", "about sixty degrees", "company", "who are you"],
+    reply:
+      "Sixty Degrees is a technology-driven company focused on building smart digital experiences and seamless digital engagement solutions—helping organizations improve the way they connect with customers and teams."
+  },
+  {
+    keys: ["pricing", "price", "cost", "how much"],
+    reply:
+      "Pricing depends on the scope (features, integrations, rollout size, and support). If you share your use case and number of users, we can propose the best-fit package."
+  },
+  {
+    keys: ["integrations", "integrate", "api", "hubspot", "salesforce", "crm"],
+    reply:
+      "We integrate via API and can connect with platforms like HubSpot, Salesforce, and other enterprise systems. We typically map data flows, set permissions, and then deploy in phases."
+  },
+  {
+    keys: ["demo", "book a demo", "book demo", "schedule", "meeting"],
+    reply:
+      "Happy to set up a demo. Tell us your company, what you want to achieve, and your preferred dates—and we’ll propose a slot."
+  },
+
+  // NEW: Location
+  {
+    keys: ["where are you located", "location", "where are you based", "based", "office", "headquarters", "hq"],
+    reply:
+      "We work internationally. If you’re looking for our main office location, share your region and we’ll point you to the most relevant local contact or hub."
+  },
+
+  // NEW: Headcount / team size
+  {
+    keys: ["how many people", "headcount", "team size", "employees", "how big is the team", "staff"],
+    reply:
+      "Team size varies by market and partners. If you tell us what you’re evaluating (pilot vs. full deployment), we can share the typical team composition involved (product, engineering, delivery, support)."
+  },
+
+  // NEW: Success cases / case studies
+  {
+    keys: ["success", "success stories", "case studies", "examples", "use cases", "results", "clients", "references"],
+    reply:
+      "We typically see the strongest impact in projects like: (1) customer experience and digital engagement, (2) operational efficiency through automation and integrations, and (3) analytics/visibility across teams. If you tell me your industry (airport, retail, hospitality, etc.), I can list the most relevant success-case examples we usually showcase."
+  },
+
+  // NEW: CEO / owner
+  {
+    keys: ["ceo", "owner", "founder", "who owns", "who is the ceo", "leadership", "management team"],
+    reply:
+      "For the most accurate leadership information (CEO/founders/ownership), please check the official company website or LinkedIn page—or share the link here and I’ll help you summarize it."
+  },
+
+  // More “sensible” info to have
+  {
+    keys: ["what do you do", "services", "solutions", "offer", "product"],
+    reply:
+      "We help companies design and deliver digital experiences: discovery & strategy, UX/UI, platform development, integrations (CRM/ERP), analytics, and ongoing optimization—always tailored to the customer journey and operational reality."
+  },
+  {
+    keys: ["industries", "sectors", "verticals"],
+    reply:
+      "We’re a fit for organizations that need strong digital engagement and integration—common sectors include retail, mobility/transport, hospitality, and enterprise services. Tell me your sector and goal and I’ll suggest the best starting point."
+  },
+  {
+    keys: ["implementation", "rollout", "deployment", "how long", "timeline"],
+    reply:
+      "A typical rollout starts with discovery, then a pilot, then phased expansion. Timelines depend on integrations and scope, but we usually recommend moving fast with a small pilot and scaling based on results."
+  },
+  {
+    keys: ["security", "privacy", "gdpr", "compliance"],
+    reply:
+      "Security and privacy are built in: role-based access, auditability, and GDPR-aligned practices. For formal requirements, we can provide documentation and align with your IT/security team."
+  },
+  {
+    keys: ["support", "maintenance", "sla"],
+    reply:
+      "We can provide ongoing support and maintenance, including SLAs depending on your needs. If you tell us your required coverage (business hours vs. 24/7), we’ll propose the right support model."
+  }
+];
 
 const FALLBACK =
-  "At the moment we are unable to answer that question. Please try asking about pricing, integrations or booking a demo.";
+  "At the moment we are unable to answer that question. Please try asking about pricing, integrations, booking a demo, location, team size, or success cases.";
 
 const messages = document.getElementById("messages");
 const input = document.getElementById("input");
@@ -207,10 +265,20 @@ function addMessage(role,text){
 }
 
 function getResponse(text){
-  const lower=text.toLowerCase();
-  for(let key in RESPONSES){
-    if(lower.includes(key)) return RESPONSES[key];
+  const lower = text.toLowerCase().trim();
+
+  for(const item of ANSWERS){
+    for(const k of item.keys){
+      // includes match for flexible phrasing
+      if(lower.includes(k)) return item.reply;
+    }
   }
+
+  // quick heuristics (handles "book demo" vs "demo", etc.)
+  if(lower.includes("book") && lower.includes("demo")) {
+    return ANSWERS.find(a => a.keys.includes("demo")).reply;
+  }
+
   return FALLBACK;
 }
 
