@@ -7,14 +7,11 @@
 
 <style>
 :root{
-  --bg:#f6f6f6;
-  --ink:#0a0a0a;
-  --card:rgba(255,255,255,.86);
-  --cardSolid:#ffffff;
-  --muted:#6b6b6b;
+  --black:#000000;
   --red:#e10600;
-  --border:rgba(0,0,0,.08);
-  --shadow: 0 10px 30px rgba(0,0,0,.10);
+  --dark:#0f0f0f;
+  --light:#ffffff;
+  --border:rgba(255,255,255,.10);
 }
 
 *{box-sizing:border-box}
@@ -23,13 +20,9 @@ html,body{height:100%}
 body{
   margin:0;
   font-family: Arial, Helvetica, sans-serif;
-  color:var(--ink);
+  background:var(--black);
+  color:var(--light);
   overflow:hidden;
-
-  background:
-    radial-gradient(circle at 18% 18%, rgba(225,6,0,.22), transparent 38%),
-    radial-gradient(circle at 82% 78%, rgba(225,6,0,.14), transparent 42%),
-    linear-gradient(180deg, #ffffff 0%, var(--bg) 100%);
 }
 
 .app{
@@ -47,13 +40,10 @@ body{
   display:flex;
   align-items:center;
   justify-content:space-between;
+  background:var(--dark);
+  border:1px solid var(--border);
+  border-radius:16px;
   padding:12px;
-
-  background: var(--card);
-  border: 1px solid var(--border);
-  border-radius: 16px;
-  box-shadow: var(--shadow);
-  backdrop-filter: blur(10px);
 }
 
 .logo{width:90px}
@@ -66,7 +56,7 @@ body{
 }
 
 .chip{
-  background: var(--cardSolid);
+  background:#111;
   border:1px solid var(--border);
   border-radius:12px;
   padding:10px;
@@ -74,24 +64,21 @@ body{
   cursor:pointer;
   transition:.2s;
   text-align:center;
-  color: var(--ink);
 }
+
 .chip:hover{
-  border-color: var(--red);
-  color: var(--red);
+  border-color:var(--red);
+  color:var(--red);
 }
 
 /* CHAT */
 .chat{
   display:flex;
   flex-direction:column;
+  background:var(--dark);
   border-radius:16px;
+  border:1px solid var(--border);
   overflow:hidden;
-
-  background: var(--card);
-  border: 1px solid var(--border);
-  box-shadow: var(--shadow);
-  backdrop-filter: blur(10px);
 }
 
 .chat-header{
@@ -116,23 +103,18 @@ body{
   padding:12px 14px;
   border-radius:14px;
   font-size:14px;
-  line-height:1.4;
+  line-height:1.35;
 }
 
-/* USER MESSAGE */
 .user .bubble{
   background:var(--red);
-  color:white;
 }
 
-/* BOT MESSAGE */
 .bot .bubble{
-  background:var(--cardSolid);
+  background:#171717;
   border:1px solid var(--border);
-  color:var(--ink);
 }
 
-/* COMPOSER */
 .composer{
   display:flex;
   border-top:1px solid var(--border);
@@ -141,14 +123,12 @@ body{
 input{
   flex:1;
   padding:16px;
-  background:transparent;
+  background:#0b0b0b;
   border:none;
-  color:var(--ink);
-  font-size:16px;
+  color:white;
+  font-size:16px; /* prevents mobile zoom */
 }
-input::placeholder{
-  color:rgba(0,0,0,.45);
-}
+
 input:focus{outline:none}
 
 button{
@@ -165,6 +145,7 @@ button{
 <body>
 
 <div class="app">
+
   <aside class="side">
     <img src="ete.jpg" class="logo" alt="Sixty Degrees">
     <div class="chips" id="chips"></div>
@@ -178,6 +159,7 @@ button{
       <button onclick="send()">Send</button>
     </div>
   </main>
+
 </div>
 
 <script>
@@ -190,20 +172,20 @@ const SUGGESTED = [
 
 const ANSWERS = [
   {
-    keys: ["what is sixty degrees","about","company"],
-    reply:"Sixty Degrees is a technology-driven company focused on building smart digital experiences and seamless digital engagement solutions."
+    keys:["what is sixty degrees","about","company"],
+    reply:"Sixty Degrees is a technology-driven company focused on delivering smart digital experiences and seamless digital engagement solutions."
   },
   {
     keys:["pricing","price","cost"],
-    reply:"Pricing depends on scope, integrations, and rollout size. Share your use case and we’ll tailor a proposal."
+    reply:"Pricing depends on your project scope and number of users. Contact us for a tailored proposal."
   },
   {
     keys:["integrations","api","hubspot","salesforce","crm"],
-    reply:"We integrate via API and connect with platforms like HubSpot, Salesforce, and other enterprise systems."
+    reply:"We integrate via API and can connect with platforms like HubSpot, Salesforce, and other enterprise systems."
   },
   {
     keys:["demo","book","meeting"],
-    reply:"Happy to schedule a demo. Share your company and preferred dates and we’ll coordinate."
+    reply:"You can book a personalized demo by sharing your company details and preferred date."
   },
   {
     keys:["location","where","based","office","hq"],
@@ -211,7 +193,7 @@ const ANSWERS = [
   },
   {
     keys:["how many","team","employees","staff"],
-    reply:"Our team scales depending on project scope. We combine product, engineering, and delivery experts per engagement."
+    reply:"Our team size varies depending on projects and markets. We combine product, engineering and delivery experts for each engagement."
   },
   {
     keys:["success","case","examples","clients","results"],
@@ -224,7 +206,7 @@ const ANSWERS = [
 ];
 
 const FALLBACK =
-  "At the moment we are unable to answer that question. Please ask about pricing, integrations, demo, location or success cases.";
+  "At the moment we are unable to answer that question. Please try asking about pricing, integrations, demo, location or success cases.";
 
 const messages=document.getElementById("messages");
 const input=document.getElementById("input");
@@ -233,9 +215,11 @@ const chipsContainer=document.getElementById("chips");
 function addMessage(role,text){
   const msg=document.createElement("div");
   msg.className="msg "+role;
+
   const bubble=document.createElement("div");
   bubble.className="bubble";
   bubble.textContent=text;
+
   msg.appendChild(bubble);
   messages.appendChild(msg);
   messages.scrollTop=messages.scrollHeight;
